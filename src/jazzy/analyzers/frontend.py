@@ -5,7 +5,6 @@ from pathlib import Path
 from jazzy.reports.findings import Finding, Severity
 from jazzy.tools.search import rg_search
 
-
 FRONTEND_PATTERN = r"TODO|FIXME|console\.log|debugger|overflow|100vw|min-width"
 
 

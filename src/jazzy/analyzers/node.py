@@ -5,7 +5,6 @@ from pathlib import Path
 from jazzy.reports.findings import Finding, Severity
 from jazzy.tools.search import rg_search
 
-
 NODE_PATTERN = r"any|unknown|console\.log|debugger|TODO|FIXME"
 
 

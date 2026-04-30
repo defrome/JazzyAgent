@@ -5,7 +5,6 @@ from pathlib import Path
 from jazzy.reports.findings import Finding, Severity
 from jazzy.tools.search import rg_search
 
-
 BACKEND_PATTERN = r"eval\(|raw\(|execute\(|CORS|SECRET|TOKEN|PASSWORD|process\.env|os\.environ"
 
 

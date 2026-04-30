@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import shlex
 
-
 DESTRUCTIVE_COMMANDS = {
     "rm",
     "rmdir",
@@ -29,5 +28,6 @@ def assert_command_allowed(command: str, allow_destructive: bool = False) -> Non
     if executable in DESTRUCTIVE_COMMANDS:
         raise PermissionError(f"Destructive command is blocked: {executable}")
     if len(parts) >= 2 and (parts[0], parts[1]) in BLOCKED_GIT_ARGS:
-        raise PermissionError(f"Potentially destructive git command is blocked: {parts[0]} {parts[1]}")
-
+        raise PermissionError(
+            f"Potentially destructive git command is blocked: {parts[0]} {parts[1]}"
+        )

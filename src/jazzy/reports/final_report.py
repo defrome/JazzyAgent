@@ -53,6 +53,7 @@ class FinalReport:
         if self.residual_risk:
             lines.extend(f"- {item}" for item in self.residual_risk)
         else:
-            lines.append("- OpenAI/Codex autonomous patch loop is scaffolded but not enabled in MVP.")
+            lines.append(
+                "- OpenAI/Codex autonomous patch loop is scaffolded but not enabled in MVP."
+            )
         return "\n".join(lines)
-

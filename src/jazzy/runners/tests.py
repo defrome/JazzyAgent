@@ -7,6 +7,9 @@ from jazzy.runners.checks import run_checks
 
 
 def run_tests(commands: list[tuple[Path, str]]) -> list[CheckResult]:
-    test_commands = [(path, command) for path, command in commands if "test" in command or "pytest" in command]
+    test_commands = [
+        (path, command)
+        for path, command in commands
+        if "test" in command or "pytest" in command
+    ]
     return run_checks(test_commands)
-

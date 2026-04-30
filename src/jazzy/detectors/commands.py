@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import shlex
+import sys
 from pathlib import Path
 
 from jazzy.detectors.languages import read_package_json
@@ -33,25 +35,29 @@ def _node_commands(part: ProjectPart) -> list[tuple[Path, str]]:
         return []
     manager = part.package_manager or "npm"
     preferred = ("type-check", "typecheck", "lint", "test", "build")
-    return [(part.path, run_script_command(manager, script)) for script in preferred if script in scripts]
+    return [
+        (part.path, run_script_command(manager, script))
+        for script in preferred
+        if script in scripts
+    ]
 
 
 def _python_commands(part: ProjectPart) -> list[tuple[Path, str]]:
     path = part.path
+    python = shlex.quote(sys.executable)
     commands: list[str] = []
     if (path / "manage.py").exists():
-        commands.append("python manage.py test")
+        commands.append(f"{python} manage.py test")
     elif _has_tests(path):
-        commands.append("pytest")
+        commands.append(f"{python} -m pytest")
     if (path / "pyproject.toml").exists():
         text = (path / "pyproject.toml").read_text(encoding="utf-8", errors="ignore")
         if "ruff" in text:
-            commands.append("ruff check .")
+            commands.append(f"{python} -m ruff check .")
         if "mypy" in text:
-            commands.append("mypy .")
+            commands.append(f"{python} -m mypy .")
     return [(path, command) for command in commands]
 
 
 def _has_tests(path: Path) -> bool:
     return any((path / name).exists() for name in ("tests", "test", "pytest.ini"))
-

@@ -18,7 +18,7 @@ class SearchMatch:
 def list_files(root: Path) -> list[Path]:
     if shutil.which("rg"):
         result = subprocess.run(
-            ["rg", "--files"],
+            ["rg", "--files", *_rg_exclude_args()],
             cwd=root,
             text=True,
             capture_output=True,
@@ -40,7 +40,7 @@ def list_files(root: Path) -> list[Path]:
 def rg_search(root: Path, pattern: str) -> list[SearchMatch]:
     if shutil.which("rg"):
         result = subprocess.run(
-            ["rg", "--line-number", "--no-heading", pattern],
+            ["rg", "--line-number", "--no-heading", *_rg_exclude_args(), pattern],
             cwd=root,
             text=True,
             capture_output=True,
@@ -63,6 +63,23 @@ def _parse_rg_output(output: str) -> list[SearchMatch]:
     return matches
 
 
+def _rg_exclude_args() -> list[str]:
+    ignored = [
+        ".git",
+        ".venv",
+        "venv",
+        "node_modules",
+        "dist",
+        "build",
+        "__pycache__",
+    ]
+    args: list[str] = []
+    for name in ignored:
+        args.extend(["--glob", f"!{name}/**"])
+    args.extend(["--glob", "!*.pyc"])
+    return args
+
+
 def _python_search(root: Path, pattern: str) -> list[SearchMatch]:
     import re
 
@@ -83,4 +100,3 @@ def _python_search(root: Path, pattern: str) -> list[SearchMatch]:
                     )
                 )
     return matches
-

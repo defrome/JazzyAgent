@@ -4,7 +4,6 @@ from pathlib import Path
 
 import pathspec
 
-
 DEFAULT_PATTERNS = [
     ".git/",
     ".venv/",

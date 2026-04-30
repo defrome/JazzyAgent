@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 
 from jazzy.detectors.commands import detect_commands
@@ -33,5 +34,9 @@ def test_detects_python_test_and_quality_commands(tmp_path: Path) -> None:
 
     commands = [command for _, command in detect_commands(detect_project(tmp_path))]
 
-    assert commands == ["pytest", "ruff check .", "mypy ."]
-
+    python = sys.executable
+    assert commands == [
+        f"{python} -m pytest",
+        f"{python} -m ruff check .",
+        f"{python} -m mypy .",
+    ]

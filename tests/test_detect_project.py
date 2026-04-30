@@ -20,7 +20,10 @@ def test_detects_vue_frontend_and_fastapi_backend(tmp_path: Path) -> None:
         {"dependencies": {"vue": "^3.0.0"}, "scripts": {"build": "vite build"}},
     )
     (frontend / "pnpm-lock.yaml").write_text("", encoding="utf-8")
-    (backend / "pyproject.toml").write_text('[project]\ndependencies = ["fastapi"]\n', encoding="utf-8")
+    (backend / "pyproject.toml").write_text(
+        '[project]\ndependencies = ["fastapi"]\n',
+        encoding="utf-8",
+    )
 
     project = detect_project(tmp_path)
 
@@ -38,4 +41,3 @@ def test_detects_express_as_backend(tmp_path: Path) -> None:
 
     assert len(project.backend_parts) == 1
     assert project.backend_parts[0].framework == "express"
-

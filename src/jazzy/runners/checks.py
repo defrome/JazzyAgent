@@ -6,7 +6,10 @@ from jazzy.reports.final_report import CheckResult
 from jazzy.tools.shell import run_shell_command
 
 
-def run_checks(commands: list[tuple[Path, str]], allow_destructive: bool = False) -> list[CheckResult]:
+def run_checks(
+    commands: list[tuple[Path, str]],
+    allow_destructive: bool = False,
+) -> list[CheckResult]:
     results: list[CheckResult] = []
     for cwd, command in commands:
         result = run_shell_command(command, cwd=cwd, allow_destructive=allow_destructive)
@@ -18,4 +21,3 @@ def run_checks(commands: list[tuple[Path, str]], allow_destructive: bool = False
             )
         )
     return results
-

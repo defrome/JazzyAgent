@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 from typing import Annotated
 
@@ -18,7 +19,6 @@ console = Console()
 app = typer.Typer(
     name="jazzy",
     help="Jazzy - review, fix, verify.",
-    invoke_without_command=True,
     no_args_is_help=False,
 )
 
@@ -28,13 +28,20 @@ FixOption = Annotated[bool, typer.Option("--fix/--no-fix", help="Allow fixes whe
 PromptArg = Annotated[str | None, typer.Argument(help="Task prompt.")] 
 
 
+KNOWN_COMMANDS = {
+    "review",
+    "fix",
+    "frontend",
+    "backend",
+    "fullstack",
+    "doctor",
+    "mobile",
+    "security",
+}
+
+
 @app.callback()
 def main(
-    ctx: typer.Context,
-    prompt: PromptArg = None,
-    path: PathOption = Path("."),
-    mode: Annotated[str, typer.Option("--mode", "-m", help="Execution mode.")] = "auto",
-    fix: FixOption = True,
     version: Annotated[
         bool,
         typer.Option("--version", help="Show Jazzy version.", is_eager=True),
@@ -44,13 +51,6 @@ def main(
     if version:
         console.print(f"jazzy {__version__}")
         raise typer.Exit()
-    if ctx.invoked_subcommand:
-        return
-    load_dotenv()
-    if prompt is None:
-        interactive(path=path, mode=mode, fix=fix)
-        return
-    _run(path=path, mode=mode, prompt=prompt, fix=fix)
 
 
 @app.command()
@@ -151,6 +151,18 @@ def _run(path: Path, mode: str, prompt: str | None, fix: bool) -> None:
     console.print(report.markdown())
 
 
-if __name__ == "__main__":
-    app()
+def main_entry() -> None:
+    load_dotenv()
+    args = sys.argv[1:]
+    if not args:
+        interactive(path=Path("."), mode="auto", fix=True)
+        return
+    first = args[0]
+    if first in KNOWN_COMMANDS or first.startswith("-"):
+        app(args=args, standalone_mode=True)
+        return
+    _run(path=Path("."), mode="auto", prompt=" ".join(args), fix=True)
 
+
+if __name__ == "__main__":
+    main_entry()
