@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/jazzyagent-banner.png" alt="JazzyAgent — Code Review, Fixes, Verification" width="100%" />
+  <img src="./jazzyagent-banner.png" alt="JazzyAgent — Code Review, Fixes, Verification" width="100%" />
 </p>
 
 # Jazzy
@@ -64,7 +64,7 @@ jazzy fullstack --allow-exec "Проверь frontend и backend"
 
 Если Ollama не запущен, Jazzy продолжит deterministic scan и покажет это в
 `Остаточный риск`.
-![ChatGPT Image 30 апр. 2026 г., 21_44_58.png](../../Downloads/ChatGPT%20Image%2030%20%D0%B0%D0%BF%D1%80.%202026%20%D0%B3.%2C%2021_44_58.png)
+
 Минимальный запуск:
 
 ```bash
