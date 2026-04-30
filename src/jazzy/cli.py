@@ -51,7 +51,7 @@ def main(
         typer.Option("--version", help="Show Jazzy version.", is_eager=True),
     ] = False,
 ) -> None:
-    """Jazzy - autonomous CLI code review and fix agent."""
+    """Jazzy - автономный CLI-агент ревью и исправлений."""
     if version:
         console.print(f"jazzy {__version__}")
         raise typer.Exit()
@@ -64,7 +64,7 @@ def review(
     fix: FixOption = False,
     allow_exec: ExecOption = False,
 ) -> None:
-    """Review a project, defaulting to no file changes."""
+    """Проверить проект без изменений файлов."""
     _run(path=path, mode="review", prompt=prompt, fix=fix, allow_exec=allow_exec)
 
 
@@ -74,7 +74,7 @@ def fix(
     path: PathOption = Path("."),
     allow_exec: ExecOption = False,
 ) -> None:
-    """Review and fix a project."""
+    """Проверить и исправить проект."""
     _run(path=path, mode="fix", prompt=prompt, fix=True, allow_exec=allow_exec)
 
 
@@ -85,7 +85,7 @@ def frontend(
     fix: FixOption = True,
     allow_exec: ExecOption = False,
 ) -> None:
-    """Check frontend code, layout, routing, images, accessibility and builds."""
+    """Проверить frontend-код, layout, routing, images, accessibility и build."""
     _run(path=path, mode="frontend", prompt=prompt, fix=fix, allow_exec=allow_exec)
 
 
@@ -96,7 +96,7 @@ def backend(
     fix: FixOption = True,
     allow_exec: ExecOption = False,
 ) -> None:
-    """Check backend routes, validation, tests, logging and safety-sensitive code."""
+    """Проверить backend routes, validation, tests, logging и safety-sensitive код."""
     _run(path=path, mode="backend", prompt=prompt, fix=fix, allow_exec=allow_exec)
 
 
@@ -107,18 +107,18 @@ def fullstack(
     fix: FixOption = True,
     allow_exec: ExecOption = False,
 ) -> None:
-    """Check frontend and backend together."""
+    """Проверить frontend и backend вместе."""
     _run(path=path, mode="fullstack", prompt=prompt, fix=fix, allow_exec=allow_exec)
 
 
 @app.command()
 def doctor(
-    prompt: PromptArg = "Project does not build. Detect commands, run checks, and report blockers.",
+    prompt: PromptArg = "Проект не собирается. Найди команды, запусти проверки и покажи blockers.",
     path: PathOption = Path("."),
     fix: FixOption = True,
     allow_exec: ExecOption = False,
 ) -> None:
-    """Diagnose build and test failures."""
+    """Диагностировать ошибки build/test."""
     _run(path=path, mode="doctor", prompt=prompt, fix=fix, allow_exec=allow_exec)
 
 
@@ -129,7 +129,7 @@ def mobile(
     fix: FixOption = True,
     allow_exec: ExecOption = False,
 ) -> None:
-    """Debug mobile frontend layout issues."""
+    """Диагностировать mobile layout проблемы."""
     _run(path=path, mode="mobile", prompt=prompt, fix=fix, allow_exec=allow_exec)
 
 
@@ -140,12 +140,12 @@ def security(
     fix: FixOption = False,
     allow_exec: ExecOption = False,
 ) -> None:
-    """Run a light security review."""
+    """Запустить легкое security review."""
     _run(path=path, mode="security", prompt=prompt, fix=fix, allow_exec=allow_exec)
 
 
 def interactive(path: Path, mode: str, fix: bool) -> None:
-    console.print(Panel("Jazzy interactive mode. Type 'exit' to quit.", title="Jazzy"))
+    console.print(Panel("Интерактивный режим Jazzy. Напишите 'exit' для выхода.", title="Jazzy"))
     while True:
         prompt = Prompt.ask("Jazzy")
         if prompt.strip().lower() in {"exit", "quit", ":q"}:
@@ -158,7 +158,7 @@ def _run(path: Path, mode: str, prompt: str | None, fix: bool, allow_exec: bool)
     root = path.resolve()
     config = load_config(root)
     request = AgentRequest(mode=mode, prompt=prompt, fix=fix, allow_exec=allow_exec)
-    console.print(Panel(f"Mode: {mode}\nPath: {root}", title="Jazzy"))
+    console.print(Panel(f"Режим: {mode}\nПуть: {root}", title="Jazzy"))
     report = run_agent(root=root, request=request, config=config)
     console.print(report.markdown())
 

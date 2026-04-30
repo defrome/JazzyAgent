@@ -42,6 +42,7 @@ class AgentConfig(BaseModel):
     provider: str = "ollama"
     model: str = "llama3"
     ollama_host: str = "http://localhost:11434"
+    ollama_timeout: float = 120.0
     reasoning_effort: str = "medium"
 
 

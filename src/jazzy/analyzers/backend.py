@@ -16,7 +16,7 @@ def analyze_backend(root: Path) -> list[Finding]:
         findings.append(
             Finding(
                 severity=Severity.MAJOR,
-                title="Backend/security-sensitive scan match",
+                title="Совпадение backend/security-скана",
                 path=match.path,
                 line=match.line,
                 detail=match.text,

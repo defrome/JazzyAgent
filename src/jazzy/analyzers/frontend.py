@@ -17,7 +17,7 @@ def analyze_frontend(root: Path) -> list[Finding]:
         findings.append(
             Finding(
                 severity=severity,
-                title="Frontend scan match",
+                title="Совпадение frontend-скана",
                 path=match.path,
                 line=match.line,
                 detail=match.text,

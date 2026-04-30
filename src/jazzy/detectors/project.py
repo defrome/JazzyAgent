@@ -31,14 +31,15 @@ class ProjectInfo:
 
     def summary(self) -> str:
         if not self.parts:
-            return "No supported project parts detected."
+            return "Поддерживаемые части проекта не обнаружены."
         chunks = []
         for part in self.parts:
             rel = part.path.relative_to(self.root) if part.path != self.root else Path(".")
-            label = f"{part.kind}: {part.language}"
+            kind = "frontend" if part.kind == "frontend" else "backend"
+            label = f"{kind}: {part.language}"
             if part.framework:
                 label += f"/{part.framework}"
-            label += f" at {rel}"
+            label += f" в {rel}"
             if part.package_manager:
                 label += f" ({part.package_manager})"
             chunks.append(label)
@@ -96,8 +97,9 @@ def _classify_node_part(path: Path, framework: str | None) -> str:
 
 
 def _has_python_markers(path: Path) -> bool:
-    return any(
+    if any(
         (path / marker).exists()
         for marker in ("pyproject.toml", "requirements.txt", "manage.py", "setup.py")
-    )
-
+    ):
+        return True
+    return any(file.is_file() and file.suffix == ".py" for file in path.glob("*.py"))

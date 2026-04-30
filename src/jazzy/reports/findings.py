@@ -9,6 +9,13 @@ class Severity(StrEnum):
     MAJOR = "major"
     MINOR = "minor"
 
+    def ru(self) -> str:
+        return {
+            Severity.CRITICAL: "критично",
+            Severity.MAJOR: "важно",
+            Severity.MINOR: "незначительно",
+        }[self]
+
 
 @dataclass(frozen=True)
 class Finding:
@@ -24,5 +31,4 @@ class Finding:
             location = self.path
             if self.line:
                 location += f":{self.line}"
-        return f"{self.severity.value}: {self.title}" + (f" ({location})" if location else "")
-
+        return f"{self.severity.ru()}: {self.title}" + (f" ({location})" if location else "")

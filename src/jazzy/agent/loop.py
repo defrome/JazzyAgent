@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from jazzy.agent.context import build_review_context
 from jazzy.agent.models import AgentRequest
 from jazzy.agent.providers import build_provider
 from jazzy.analyzers.backend import analyze_backend
@@ -27,7 +28,7 @@ def run_agent(root: Path, request: AgentRequest, config: JazzyConfig) -> FinalRe
             report.findings.append(
                 Finding(
                     severity=Severity.CRITICAL,
-                    title="Git worktree is not clean and safety.require_git_clean is enabled",
+                    title="Git worktree не чистый, а safety.require_git_clean включен",
                     detail=status,
                 )
             )
@@ -38,7 +39,9 @@ def run_agent(root: Path, request: AgentRequest, config: JazzyConfig) -> FinalRe
     if request.mode == "doctor":
         commands = _doctor_commands(commands)
 
-    report.residual_risk.extend(_llm_review(root, request, config, project.summary(), commands))
+    llm_review, llm_risk = _llm_review(root, request, config, project.summary(), commands)
+    report.llm_review = llm_review
+    report.residual_risk.extend(llm_risk)
 
     if _can_run_checks(request):
         report.checks.extend(run_checks(commands, root=root, allow_exec=request.allow_exec))
@@ -50,16 +53,16 @@ def run_agent(root: Path, request: AgentRequest, config: JazzyConfig) -> FinalRe
         report.findings.append(
             Finding(
                 severity=Severity.CRITICAL,
-                title=f"Check failed: {check.command}",
+                title=f"Проверка завершилась ошибкой: {check.command}",
                 detail=check.output[-1000:],
             )
         )
 
     if request.fix and failed:
         report.residual_risk.append(
-            "Fix mode detected failing or skipped checks, but autonomous patching still requires "
-            "a gated patch plan. Unified-diff patch tools are present; automatic patch iteration "
-            "is the next implementation step."
+            "Fix-режим нашел упавшие проверки, но автономное исправление пока требует "
+            "безопасный patch-план. Инструменты unified diff уже есть; следующий шаг - "
+            "автоматическая итерация patch -> verify."
         )
     return report
 
@@ -101,9 +104,9 @@ def _can_run_checks(request: AgentRequest) -> bool:
 
 def _skipped_checks(commands: list[CommandSpec], mode: str) -> list[CheckResult]:
     reason = (
-        "Review mode is read-only."
+        "Review-режим только читает код."
         if mode == "review"
-        else "Command execution is gated. Re-run with --allow-exec to execute checks."
+        else "Запуск команд заблокирован. Повторите с --allow-exec, чтобы выполнить проверки."
     )
     return [
         CheckResult(command=command.display, passed=False, output=reason, skipped=True)
@@ -117,28 +120,32 @@ def _llm_review(
     config: JazzyConfig,
     project_summary: str,
     commands: list[CommandSpec],
-) -> list[str]:
+) -> tuple[str | None, list[str]]:
     provider = build_provider(
         config.agent.provider,
         config.agent.model,
         host=config.agent.ollama_host,
+        timeout=config.agent.ollama_timeout,
     )
     if provider.name == "noop":
-        return ["LLM review provider is disabled."]
+        return None, ["LLM-провайдер отключен."]
 
     context = "\n".join(
         [
             f"Root: {root}",
             f"Mode: {request.mode}",
             f"Project: {project_summary}",
-            "Detected commands:",
-            *[f"- {command.display} in {command.cwd}" for command in commands[:20]],
+            "",
+            "Найденные команды:",
+            *[f"- {command.display} в {command.cwd}" for command in commands[:20]],
+            "",
+            build_review_context(root),
         ]
     )
     try:
-        response = provider.review(request.prompt or "Review this project.", context)
+        response = provider.review(request.prompt or "Проверь этот проект.", context)
     except RuntimeError as exc:
-        return [str(exc)]
+        return None, [str(exc)]
     if not response:
-        return [f"{provider.name} returned an empty review."]
-    return [f"{provider.name} review: {response[:1200]}"]
+        return None, [f"{provider.name} вернул пустой анализ."]
+    return response[:6000], []

@@ -16,7 +16,7 @@ def analyze_python(root: Path) -> list[Finding]:
         findings.append(
             Finding(
                 severity=Severity.MINOR,
-                title="Python quality scan match",
+                title="Совпадение Python quality-скана",
                 path=match.path,
                 line=match.line,
                 detail=match.text,

@@ -29,7 +29,7 @@ def test_review_mode_does_not_execute_detected_commands(tmp_path: Path) -> None:
 
     assert report.checks
     assert all(check.skipped for check in report.checks)
-    assert "Review mode is read-only." in report.checks[0].output
+    assert "Review-режим только читает код." in report.checks[0].output
 
 
 def test_report_includes_finding_detail() -> None:
@@ -50,4 +50,16 @@ def test_report_includes_finding_detail() -> None:
         ],
     )
 
-    assert "Evidence: eval(user_input)" in report.markdown()
+    assert "Доказательство: eval(user_input)" in report.markdown()
+
+
+def test_report_has_separate_llm_review_section() -> None:
+    from jazzy.reports.final_report import FinalReport
+
+    report = FinalReport(mode="review", prompt=None, llm_review="Summary:\n- Оценка: 6/10")
+
+    rendered = report.markdown()
+
+    assert "LLM-анализ:" in rendered
+    assert "Summary:\n- Оценка: 6/10" in rendered
+    assert "Остаточный риск:" in rendered

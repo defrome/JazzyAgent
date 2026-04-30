@@ -48,13 +48,13 @@ def run_command(
     allow_exec: bool = False,
 ) -> ShellResult:
     if not argv:
-        raise ValueError("Empty command is not allowed.")
+        raise ValueError("Пустая команда запрещена.")
     if not allow_exec:
-        raise PermissionError("Command execution requires explicit allow_exec=True.")
+        raise PermissionError("Запуск команд требует явного allow_exec=True.")
 
     executable = Path(argv[0]).name
     if executable not in ALLOWED_EXECUTABLES:
-        raise PermissionError(f"Executable is not allowlisted: {executable}")
+        raise PermissionError(f"Executable не входит в allowlist: {executable}")
 
     safe_cwd = assert_inside_root(root, cwd)
     result = subprocess.run(

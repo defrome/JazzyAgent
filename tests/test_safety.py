@@ -24,11 +24,10 @@ def test_file_tools_stay_inside_workspace(tmp_path: Path) -> None:
 
 
 def test_command_execution_requires_explicit_gate(tmp_path: Path) -> None:
-    with pytest.raises(PermissionError):
+    with pytest.raises(PermissionError, match="allow_exec=True"):
         run_command(["python3", "--version"], root=tmp_path, cwd=tmp_path)
 
 
 def test_command_execution_rejects_shell_bypass(tmp_path: Path) -> None:
     with pytest.raises(PermissionError):
         run_command(["sh", "-c", "echo unsafe"], root=tmp_path, cwd=tmp_path, allow_exec=True)
-

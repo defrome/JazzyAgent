@@ -6,12 +6,15 @@ import urllib.request
 from dataclasses import dataclass
 from typing import Protocol
 
+from jazzy.agent.postprocess import postprocess_llm_review
+from jazzy.agent.prompts import SYSTEM_PROMPT
+
 
 class LLMProvider(Protocol):
     name: str
 
     def review(self, prompt: str, context: str) -> str:
-        """Return a review summary for the provided project context."""
+        """Вернуть review-summary по контексту проекта."""
 
 
 @dataclass(frozen=True)
@@ -26,7 +29,7 @@ class NoopProvider:
 class OllamaProvider:
     model: str = "llama3"
     host: str = "http://localhost:11434"
-    timeout: float = 8.0
+    timeout: float = 120.0
 
     @property
     def name(self) -> str:
@@ -36,10 +39,9 @@ class OllamaProvider:
         payload = {
             "model": self.model,
             "prompt": (
-                "Ты Jazzy, инженерный code review агент. "
-                "Дай короткий структурированный анализ: critical/major/minor, "
-                "что проверено, что рискованно, какие следующие проверки нужны.\n\n"
-                f"Задача пользователя:\n{prompt}\n\nКонтекст проекта:\n{context}"
+                f"{SYSTEM_PROMPT}\n\n"
+                f"Задача пользователя:\n{prompt}\n\n"
+                f"Контекст проекта:\n{context}"
             ),
             "stream": False,
         }
@@ -54,11 +56,20 @@ class OllamaProvider:
             with urllib.request.urlopen(request, timeout=self.timeout) as response:
                 body = json.loads(response.read().decode("utf-8"))
         except (OSError, urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
-            raise RuntimeError(f"Ollama/Llama3 is unavailable: {exc}") from exc
-        return str(body.get("response", "")).strip()
+            raise RuntimeError(f"Ollama/Llama3 недоступен: {exc}") from exc
+        return postprocess_llm_review(str(body.get("response", "")).strip())
 
 
-def build_provider(provider: str, model: str, host: str | None = None) -> LLMProvider:
+def build_provider(
+    provider: str,
+    model: str,
+    host: str | None = None,
+    timeout: float = 120.0,
+) -> LLMProvider:
     if provider == "ollama":
-        return OllamaProvider(model=model, host=host or "http://localhost:11434")
+        return OllamaProvider(
+            model=model,
+            host=host or "http://localhost:11434",
+            timeout=timeout,
+        )
     return NoopProvider()

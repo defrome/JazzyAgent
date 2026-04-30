@@ -41,3 +41,13 @@ def test_detects_express_as_backend(tmp_path: Path) -> None:
 
     assert len(project.backend_parts) == 1
     assert project.backend_parts[0].framework == "express"
+
+
+def test_detects_single_python_file_as_backend(tmp_path: Path) -> None:
+    (tmp_path / "main.py").write_text("print('hello')\n", encoding="utf-8")
+
+    project = detect_project(tmp_path)
+
+    assert len(project.backend_parts) == 1
+    assert project.backend_parts[0].language == "python"
+    assert project.summary() == "backend: python/python в ."
