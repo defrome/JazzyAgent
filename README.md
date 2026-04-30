@@ -4,74 +4,220 @@
 
 # Jazzy
 
-Jazzy — автономный CLI-агент для ревью и исправления frontend/backend проектов.
-Он анализирует репозиторий, находит ошибки, правит код, запускает проверки и
-выдает финальный инженерный отчет.
-
-## MVP
-
-Что поддерживает первая версия:
-
-- интерактивный режим `jazzy`
-- `jazzy "Проверь проект и исправь ошибки"`
-- `jazzy frontend "Исправь mobile layout"`
-- `jazzy backend "Исправь failing tests"`
-- `jazzy doctor`
-- детекцию JS/TS frontend и Python backend проектов
-- автоматический выбор команд для build, lint, tests и type checks
-- быстрый scan кода через `rg`, если он доступен
-- безопасный запуск команд через `argv` без `shell=True`
-- read-only review: `jazzy review` не запускает код проекта
-- gated execution: проверки запускаются только с `--allow-exec`
-- root-bound file tools: чтение и запись файлов не выходят за пределы workspace
-- Llama3 analysis через Ollama (`ollama:llama3`)
-- контекст для LLM: дерево релевантных файлов и содержимое ключевых файлов
-- fallback detection одиночных Python-скриптов, например `main.py`
-- применение unified-diff patches
-- финальный engineering report
-
-## Установка для локальной разработки
+**Jazzy** — автономный CLI-агент для ревью и исправления frontend/backend проектов.
+Он анализирует репозиторий, определяет стек, находит проблемы, запускает проверки
+только с явного разрешения и выдает инженерный отчет на русском языке.
 
 ```bash
+jazzy review
+jazzy doctor --allow-exec
+jazzy frontend "Найди mobile overflow"
+jazzy backend "Проверь обработку ошибок и тесты"
+```
+
+## Что Уже Умеет
+
+- Определяет JS/TS frontend, Node backend и Python backend.
+- Находит одиночные Python-скрипты вроде `main.py`.
+- Выбирает команды `build`, `lint`, `test`, `type-check`, `pytest`, `ruff`, `mypy`.
+- Делает быстрый scan через `rg`.
+- Строит LLM-контекст: дерево файлов и содержимое ключевых файлов.
+- Использует Llama3 через Ollama для подробного review narrative.
+- Пишет отчет строго на русском: что делает код, поток выполнения, риски, рекомендации и план улучшений.
+- Не запускает код проекта в `review`-режиме.
+- Запускает проверки только с `--allow-exec`.
+- Запускает команды через `argv` без `shell=True`.
+- Защищает file tools от выхода за пределы workspace.
+- Помечает подозрительные LLM-советы вроде `import package==version`.
+
+## Быстрый Старт
+
+Установка для разработки:
+
+```bash
+cd /Users/defrome/Documents/JazzyAgent
 python -m pip install -e ".[dev]"
 ```
 
-## Примеры
+Если используется локальное окружение из этого репозитория:
 
 ```bash
-jazzy "Проверь проект, исправь build errors и запусти тесты"
-jazzy frontend "Найди почему на mobile всё вылезает и исправь"
-jazzy backend "Проверь API, ошибки валидации, тесты и обработку ошибок"
-jazzy doctor
-jazzy doctor --allow-exec
+cd /Users/defrome/Documents/JazzyAgent
+source .venv/bin/activate
+jazzy review
 ```
 
-`jazzy review` по умолчанию только читает код и не выполняет scripts из чужого
-репозитория. Для запуска найденных проверок используйте явный флаг:
+Проверить другой проект:
 
 ```bash
-jazzy doctor --allow-exec
-jazzy fullstack --allow-exec "Проверь frontend и backend"
+cd /path/to/project
+/Users/defrome/Documents/JazzyAgent/.venv/bin/jazzy review
 ```
 
-## Llama3 через Ollama
+Или через `--path`:
 
-По умолчанию Jazzy пытается использовать локальный Ollama provider с моделью
-`llama3` для дополнительного анализа контекста проекта. В LLM-контекст попадает
-дерево релевантных файлов и содержимое ключевых файлов: `main.py`, `app.py`,
-`routes.py`, `models.py`, `pyproject.toml`, `requirements.txt`, `package.json`,
-`Dockerfile`, `README.md` и другие текстовые файлы.
+```bash
+cd /Users/defrome/Documents/JazzyAgent
+.venv/bin/jazzy review --path /path/to/project
+```
 
-Если Ollama не запущен, Jazzy продолжит deterministic scan и покажет это в
-`Остаточный риск`.
+## Команды
 
-Минимальный запуск:
+| Команда | Что делает |
+| --- | --- |
+| `jazzy` | Открывает интерактивный режим. |
+| `jazzy "задача"` | Одноразовый запуск в auto-режиме. |
+| `jazzy review` | Read-only review без запуска кода проекта. |
+| `jazzy fix` | Режим исправлений. Сейчас patch-loop подготовлен, но автопатчинг еще gated. |
+| `jazzy frontend` | Проверка frontend-кода, layout, routing, CSS, accessibility. |
+| `jazzy backend` | Проверка backend-кода, routes, validation, tests, error handling. |
+| `jazzy fullstack` | Проверка frontend и backend вместе. |
+| `jazzy doctor` | Диагностика build/test проблем. |
+| `jazzy mobile` | Поиск mobile layout проблем. |
+| `jazzy security` | Легкий security review очевидных рисков. |
+
+## Безопасность
+
+По умолчанию Jazzy безопасен для чтения:
+
+```bash
+jazzy review --path /path/to/project
+```
+
+Этот режим:
+
+- не выполняет `npm scripts`, `pytest`, `ruff`, `make` и другие команды проекта;
+- не изменяет файлы;
+- анализирует только содержимое workspace;
+- показывает найденные команды как пропущенные.
+
+Чтобы реально запустить проверки, нужен явный флаг:
+
+```bash
+jazzy doctor --path /path/to/project --allow-exec
+jazzy fullstack --path /path/to/project --allow-exec
+```
+
+Команды запускаются через `subprocess.run(argv, shell=False)`. Jazzy блокирует
+shell-bypass вроде `sh -c` и не дает file tools читать или писать вне root проекта.
+
+## Llama3 Через Ollama
+
+Jazzy использует локальный Ollama provider:
+
+```toml
+[agent]
+provider = "ollama"
+model = "llama3"
+ollama_host = "http://localhost:11434"
+ollama_timeout = 120
+```
+
+Подготовка:
 
 ```bash
 ollama pull llama3
 ollama serve
-jazzy review "Проанализируй архитектуру и риски"
 ```
+
+Запуск:
+
+```bash
+jazzy review --path /path/to/project "Проанализируй архитектуру и риски"
+```
+
+В LLM-контекст попадает:
+
+- список релевантных файлов;
+- содержимое `main.py`, `app.py`, `server.py`, `routes.py`, `models.py`;
+- `pyproject.toml`, `requirements.txt`, `package.json`;
+- `Dockerfile`, `README.md` и другие текстовые файлы.
+
+Если Ollama не запущен или недоступен, Jazzy продолжит deterministic scan и
+покажет причину в секции `Остаточный риск`.
+
+## Формат Отчета
+
+Отчет Jazzy включает:
+
+- `Находки` — deterministic scan с file:line и доказательством.
+- `LLM-анализ` — подробный review narrative от Llama3.
+- `Изменено` — список измененных файлов.
+- `Проверки` — найденные, запущенные или пропущенные команды.
+- `Остаточный риск` — что не удалось проверить.
+
+LLM-анализ просит модель отвечать в таком формате:
+
+- `Summary`
+- `Что делает код`
+- `Поток выполнения`
+- `Critical Issues`
+- `Major Issues`
+- `Minor Issues`
+- `Security Review`
+- `Architecture & Clean Code`
+- `Рекомендации по улучшению`
+- `План улучшений`
+- `Optimized Snippet`
+
+## Примеры
+
+Read-only review:
+
+```bash
+jazzy review --path ./my-app
+```
+
+Диагностика сборки с запуском проверок:
+
+```bash
+jazzy doctor --path ./my-app --allow-exec
+```
+
+Frontend:
+
+```bash
+jazzy frontend --path ./web "Найди почему на mobile все вылезает"
+```
+
+Backend:
+
+```bash
+jazzy backend --path ./api "Проверь validation, error handling и тесты"
+```
+
+Fullstack:
+
+```bash
+jazzy fullstack --path ./project --allow-exec "Проверь frontend и backend"
+```
+
+Одиночный Python-скрипт:
+
+```bash
+mkdir demo
+echo 'print("hello")' > demo/main.py
+jazzy review --path ./demo
+```
+
+## Поддерживаемая Детекция
+
+Frontend:
+
+- `package.json`
+- Vite, React, Vue, Next.js, Nuxt, Svelte, Astro
+- npm, pnpm, yarn, bun
+
+Backend:
+
+- Python: `pyproject.toml`, `requirements.txt`, `manage.py`, `setup.py`, одиночные `.py`
+- FastAPI, Django, Flask
+- Node backend: Express, NestJS
+
+Команды:
+
+- JS/TS: `type-check`, `typecheck`, `lint`, `test`, `build`
+- Python: `pytest`, `ruff check .`, `mypy .`, `python manage.py test`
 
 ## Конфигурация
 
@@ -111,3 +257,24 @@ ollama_host = "http://localhost:11434"
 ollama_timeout = 120
 reasoning_effort = "medium"
 ```
+
+## Разработка
+
+```bash
+python -m pip install -e ".[dev]"
+python -m pytest
+python -m ruff check .
+```
+
+Текущий статус проверок:
+
+```text
+pytest: 17 passed
+ruff: all checks passed
+```
+
+## Статус
+
+Jazzy сейчас находится на стадии MVP. Уже есть безопасный read-only reviewer,
+детекция проекта, Llama3-анализ, gated execution и базовый patch-инструментарий.
+Следующий крупный шаг — полноценный gated loop `analyze -> plan -> patch -> verify`.
