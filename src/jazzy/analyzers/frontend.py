@@ -11,6 +11,8 @@ FRONTEND_PATTERN = r"TODO|FIXME|console\.log|debugger|overflow|100vw|min-width"
 def analyze_frontend(root: Path) -> list[Finding]:
     findings: list[Finding] = []
     for match in rg_search(root, FRONTEND_PATTERN)[:50]:
+        if _is_analyzer_definition(match.path):
+            continue
         severity = Severity.MAJOR if match.text in {"100vw", "overflow"} else Severity.MINOR
         findings.append(
             Finding(
@@ -23,3 +25,6 @@ def analyze_frontend(root: Path) -> list[Finding]:
         )
     return findings
 
+
+def _is_analyzer_definition(path: str) -> bool:
+    return path.startswith("src/jazzy/analyzers/")

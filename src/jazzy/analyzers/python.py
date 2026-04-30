@@ -11,6 +11,8 @@ PYTHON_PATTERN = r"except Exception|pass|print\(|Any|TODO|FIXME|raise NotImpleme
 def analyze_python(root: Path) -> list[Finding]:
     findings: list[Finding] = []
     for match in rg_search(root, PYTHON_PATTERN)[:50]:
+        if match.path.startswith("src/jazzy/analyzers/"):
+            continue
         findings.append(
             Finding(
                 severity=Severity.MINOR,
@@ -21,4 +23,3 @@ def analyze_python(root: Path) -> list[Finding]:
             )
         )
     return findings
-

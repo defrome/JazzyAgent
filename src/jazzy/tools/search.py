@@ -72,6 +72,8 @@ def _rg_exclude_args() -> list[str]:
         "dist",
         "build",
         "__pycache__",
+        ".pytest_cache",
+        ".ruff_cache",
     ]
     args: list[str] = []
     for name in ignored:

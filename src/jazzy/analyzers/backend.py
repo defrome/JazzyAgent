@@ -11,6 +11,8 @@ BACKEND_PATTERN = r"eval\(|raw\(|execute\(|CORS|SECRET|TOKEN|PASSWORD|process\.e
 def analyze_backend(root: Path) -> list[Finding]:
     findings: list[Finding] = []
     for match in rg_search(root, BACKEND_PATTERN)[:50]:
+        if match.path.startswith("src/jazzy/analyzers/"):
+            continue
         findings.append(
             Finding(
                 severity=Severity.MAJOR,
@@ -21,4 +23,3 @@ def analyze_backend(root: Path) -> list[Finding]:
             )
         )
     return findings
-
