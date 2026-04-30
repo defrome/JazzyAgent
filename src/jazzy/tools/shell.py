@@ -6,7 +6,6 @@ from pathlib import Path
 
 from jazzy.safety.workspace import assert_inside_root
 
-
 ALLOWED_EXECUTABLES = {
     "python",
     "python3",

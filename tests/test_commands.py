@@ -23,7 +23,7 @@ def test_detects_node_scripts_in_preferred_order(tmp_path: Path) -> None:
         encoding="utf-8",
     )
 
-    commands = [command for _, command in detect_commands(detect_project(tmp_path))]
+    commands = [command.display for command in detect_commands(detect_project(tmp_path))]
 
     assert commands == ["npm run type-check", "npm run lint", "npm run build"]
 
@@ -32,7 +32,7 @@ def test_detects_python_test_and_quality_commands(tmp_path: Path) -> None:
     (tmp_path / "tests").mkdir()
     (tmp_path / "pyproject.toml").write_text("[tool.ruff]\n[tool.mypy]\n", encoding="utf-8")
 
-    commands = [command for _, command in detect_commands(detect_project(tmp_path))]
+    commands = [command.display for command in detect_commands(detect_project(tmp_path))]
 
     python = sys.executable
     assert commands == [

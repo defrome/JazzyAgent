@@ -25,5 +25,11 @@ def run_checks(
         except (PermissionError, ValueError) as exc:
             results.append(CheckResult(command=command.display, passed=False, output=str(exc)))
             continue
-        results.append(CheckResult(command=command.display, passed=result.passed, output=result.combined_output()))
+        results.append(
+            CheckResult(
+                command=command.display,
+                passed=result.passed,
+                output=result.combined_output(),
+            )
+        )
     return results

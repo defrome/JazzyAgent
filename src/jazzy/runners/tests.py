@@ -7,7 +7,11 @@ from jazzy.reports.final_report import CheckResult
 from jazzy.runners.checks import run_checks
 
 
-def run_tests(commands: list[CommandSpec], root: Path, allow_exec: bool = False) -> list[CheckResult]:
+def run_tests(
+    commands: list[CommandSpec],
+    root: Path,
+    allow_exec: bool = False,
+) -> list[CheckResult]:
     test_commands = [
         command
         for command in commands

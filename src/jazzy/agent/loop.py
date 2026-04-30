@@ -8,8 +8,7 @@ from jazzy.analyzers.backend import analyze_backend
 from jazzy.analyzers.frontend import analyze_frontend
 from jazzy.analyzers.python import analyze_python
 from jazzy.config import JazzyConfig
-from jazzy.detectors.commands import CommandSpec
-from jazzy.detectors.commands import detect_commands
+from jazzy.detectors.commands import CommandSpec, detect_commands
 from jazzy.detectors.project import detect_project
 from jazzy.reports.final_report import CheckResult, FinalReport
 from jazzy.reports.findings import Finding, Severity
@@ -46,7 +45,7 @@ def run_agent(root: Path, request: AgentRequest, config: JazzyConfig) -> FinalRe
     elif commands:
         report.checks.extend(_skipped_checks(commands, request.mode))
 
-    failed = [check for check in report.checks if not check.passed]
+    failed = [check for check in report.checks if not check.passed and not check.skipped]
     for check in failed:
         report.findings.append(
             Finding(
