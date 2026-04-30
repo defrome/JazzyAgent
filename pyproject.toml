@@ -1,0 +1,43 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "jazzy-agent"
+version = "0.1.0"
+description = "Autonomous CLI code review and fix agent for frontend and backend projects."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Jazzy" }]
+dependencies = [
+  "openai>=1.0.0",
+  "pathspec>=0.12.1",
+  "pydantic>=2.7.0",
+  "python-dotenv>=1.0.1",
+  "rich>=13.7.0",
+  "typer>=0.12.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0.0",
+  "ruff>=0.5.0",
+]
+
+[project.scripts]
+jazzy = "jazzy.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/jazzy"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
