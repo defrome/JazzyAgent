@@ -30,3 +30,14 @@ def run_script_command(manager: str, script: str) -> str:
         return f"bun run {script}"
     return f"{manager} run {script}"
 
+
+def run_script_argv(manager: str, script: str) -> list[str]:
+    if manager == "npm":
+        return ["npm", "run", script]
+    if manager == "pnpm":
+        return ["pnpm", script]
+    if manager == "yarn":
+        return ["yarn", script]
+    if manager == "bun":
+        return ["bun", "run", script]
+    return [manager, "run", script]

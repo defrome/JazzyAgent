@@ -7,4 +7,4 @@ class AgentRequest(BaseModel):
     mode: str
     prompt: str | None
     fix: bool = True
-
+    allow_exec: bool = False

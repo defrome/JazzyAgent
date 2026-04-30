@@ -10,6 +10,7 @@ class CheckResult:
     command: str
     passed: bool
     output: str = ""
+    skipped: bool = False
 
 
 @dataclass
@@ -28,7 +29,12 @@ class FinalReport:
 
         lines.append("Findings:")
         if self.findings:
-            lines.extend(f"- {finding.label()}" for finding in self.findings)
+            for finding in self.findings:
+                lines.append(f"- {finding.label()}")
+                if finding.detail:
+                    detail = finding.detail.strip()
+                    if detail:
+                        lines.append(f"  Evidence: {detail[:800]}")
         else:
             lines.append("- No obvious issues found during MVP scan.")
         lines.append("")
@@ -43,8 +49,10 @@ class FinalReport:
         lines.append("Checks:")
         if self.checks:
             for check in self.checks:
-                status = "passed" if check.passed else "failed"
+                status = "skipped" if check.skipped else "passed" if check.passed else "failed"
                 lines.append(f"- `{check.command}` - {status}")
+                if check.output and not check.passed:
+                    lines.append(f"  Output: {check.output.strip()[:800]}")
         else:
             lines.append("- No checks were detected or run.")
         lines.append("")

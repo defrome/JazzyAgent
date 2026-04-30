@@ -39,7 +39,9 @@ class SafetyConfig(BaseModel):
 
 
 class AgentConfig(BaseModel):
-    model: str = "gpt-5.3-codex"
+    provider: str = "ollama"
+    model: str = "llama3"
+    ollama_host: str = "http://localhost:11434"
     reasoning_effort: str = "medium"
 
 
@@ -58,4 +60,3 @@ def load_config(root: Path) -> JazzyConfig:
     with config_path.open("rb") as file:
         data = tomllib.load(file)
     return JazzyConfig.model_validate(data)
-

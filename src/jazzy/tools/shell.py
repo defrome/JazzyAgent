@@ -4,15 +4,32 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
-from jazzy.safety.permissions import assert_command_allowed
+from jazzy.safety.workspace import assert_inside_root
+
+
+ALLOWED_EXECUTABLES = {
+    "python",
+    "python3",
+    "pytest",
+    "ruff",
+    "mypy",
+    "npm",
+    "pnpm",
+    "yarn",
+    "bun",
+}
 
 
 @dataclass(frozen=True)
 class ShellResult:
-    command: str
+    argv: list[str]
     returncode: int
     stdout: str
     stderr: str
+
+    @property
+    def command(self) -> str:
+        return " ".join(self.argv)
 
     @property
     def passed(self) -> bool:
@@ -23,26 +40,36 @@ class ShellResult:
         return text[-limit:]
 
 
-def run_shell_command(
-    command: str,
+def run_command(
+    argv: list[str],
+    *,
+    root: Path,
     cwd: Path,
     timeout: int = 120,
-    allow_destructive: bool = False,
+    allow_exec: bool = False,
 ) -> ShellResult:
-    assert_command_allowed(command, allow_destructive=allow_destructive)
+    if not argv:
+        raise ValueError("Empty command is not allowed.")
+    if not allow_exec:
+        raise PermissionError("Command execution requires explicit allow_exec=True.")
+
+    executable = Path(argv[0]).name
+    if executable not in ALLOWED_EXECUTABLES:
+        raise PermissionError(f"Executable is not allowlisted: {executable}")
+
+    safe_cwd = assert_inside_root(root, cwd)
     result = subprocess.run(
-        command,
-        cwd=cwd,
-        shell=True,
+        argv,
+        cwd=safe_cwd,
+        shell=False,
         text=True,
         capture_output=True,
         timeout=timeout,
         check=False,
     )
     return ShellResult(
-        command=command,
+        argv=argv,
         returncode=result.returncode,
         stdout=result.stdout,
         stderr=result.stderr,
     )
-
